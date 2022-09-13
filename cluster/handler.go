@@ -57,8 +57,7 @@ func cache() {
 	hrdata := map[string]interface{}{
 		"code": 200,
 		"sys": map[string]interface{}{
-			"heartbeat":  env.Heartbeat.Seconds(),
-			"servertime": time.Now().UTC().Unix(),
+			"heartbeat": env.Heartbeat.Seconds(),
 		},
 	}
 	if dict, ok := message.GetDictionary(); ok {
