@@ -62,21 +62,8 @@ func cache() {
 		},
 	}
 	if dict, ok := message.GetDictionary(); ok {
-		hrdata = map[string]interface{}{
-			"code": 200,
-			"sys": map[string]interface{}{
-				"heartbeat":  env.Heartbeat.Seconds(),
-				"servertime": time.Now().UTC().Unix(),
-				"dict":       dict,
-			},
-		}
+		hrdata["sys"].(map[string]interface{})["dict"] = dict
 	}
-	// data, err := json.Marshal(map[string]interface{}{
-	// 	"code": 200,
-	// 	"sys": map[string]float64{
-	// 		"heartbeat": env.Heartbeat.Seconds(),
-	// 	},
-	// })
 	data, err := json.Marshal(hrdata)
 	if err != nil {
 		panic(err)
