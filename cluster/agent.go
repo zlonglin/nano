@@ -236,6 +236,10 @@ func (a *agent) setStatus(state int32) {
 	atomic.StoreInt32(&a.state, state)
 }
 
+func (a *agent) IsClosed() bool {
+	return a.status() == statusClosed
+}
+
 func (a *agent) write() {
 	ticker := time.NewTicker(env.Heartbeat)
 	chWrite := make(chan []byte, agentWriteBacklog)
