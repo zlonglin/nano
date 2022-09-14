@@ -230,9 +230,7 @@ func (h *LocalHandler) handle(conn net.Conn) {
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
-			if !agent.IsClosed() {
-				log.Println(fmt.Sprintf("Read message error: %s, session will be closed immediately", err.Error()))
-			}
+			log.Println(fmt.Sprintf("Read message error: %s, session will be closed immediately", err.Error()))
 			return
 		}
 
