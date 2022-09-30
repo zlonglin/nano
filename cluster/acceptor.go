@@ -90,5 +90,5 @@ func (a *acceptor) Close() error {
 
 // RemoteAddr implements the session.NetworkEntity interface
 func (a *acceptor) RemoteAddr() net.Addr {
-	return mock.NetAddr{StringAddr: a.clientAddr}
+	return mock.NetAddr{Addr: a.clientAddr}
 }
