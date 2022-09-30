@@ -26,13 +26,15 @@ import (
 )
 
 // NetAddr mock the net.Addr interface
-type NetAddr struct{}
+type NetAddr struct {
+	StringAddr string
+}
 
 // Network implements the net.Addr interface
 func (a NetAddr) Network() string { return "mock" }
 
 // String implements the net.Addr interface
-func (a NetAddr) String() string { return "mock-addr" }
+func (a NetAddr) String() string { return a.StringAddr } //"mock-addr" }
 
 type message struct {
 	route string

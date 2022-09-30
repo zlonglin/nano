@@ -17,6 +17,7 @@ type acceptor struct {
 	lastMid    uint64
 	rpcHandler rpcHandler
 	gateAddr   string
+	clientAddr string
 }
 
 // Push implements the session.NetworkEntity interface
@@ -88,6 +89,6 @@ func (a *acceptor) Close() error {
 }
 
 // RemoteAddr implements the session.NetworkEntity interface
-func (*acceptor) RemoteAddr() net.Addr {
-	return mock.NetAddr{}
+func (a *acceptor) RemoteAddr() net.Addr {
+	return mock.NetAddr{StringAddr: a.clientAddr}
 }

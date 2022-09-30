@@ -345,29 +345,33 @@ func (h *LocalHandler) remoteProcess(session *session.Session, msg *message.Mess
 	// Retrieve gate address and session id
 	gateAddr := h.currentNode.ServiceAddr
 	sessionId := session.ID()
+	clientAddr := session.RemoteAddr().String()
 	switch v := session.NetworkEntity().(type) {
 	case *acceptor:
 		gateAddr = v.gateAddr
 		sessionId = v.sid
+		clientAddr = v.clientAddr
 	}
 
 	client := clusterpb.NewMemberClient(pool.Get())
 	switch msg.Type {
 	case message.Request:
 		request := &clusterpb.RequestMessage{
-			GateAddr:  gateAddr,
-			SessionId: sessionId,
-			Id:        msg.ID,
-			Route:     msg.Route,
-			Data:      data,
+			GateAddr:   gateAddr,
+			SessionId:  sessionId,
+			Id:         msg.ID,
+			Route:      msg.Route,
+			Data:       data,
+			ClientAddr: clientAddr,
 		}
 		_, err = client.HandleRequest(context.Background(), request)
 	case message.Notify:
 		request := &clusterpb.NotifyMessage{
-			GateAddr:  gateAddr,
-			SessionId: sessionId,
-			Route:     msg.Route,
-			Data:      data,
+			GateAddr:   gateAddr,
+			SessionId:  sessionId,
+			Route:      msg.Route,
+			Data:       data,
+			ClientAddr: clientAddr,
 		}
 		_, err = client.HandleNotify(context.Background(), request)
 	}

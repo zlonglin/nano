@@ -300,7 +300,7 @@ func (n *Node) findSession(sid int64) *session.Session {
 	return s
 }
 
-func (n *Node) findOrCreateSession(sid int64, gateAddr string) (*session.Session, error) {
+func (n *Node) findOrCreateSession(sid int64, gateAddr string, clientAddr string) (*session.Session, error) {
 	n.mu.RLock()
 	s, found := n.sessions[sid]
 	n.mu.RUnlock()
@@ -314,6 +314,7 @@ func (n *Node) findOrCreateSession(sid int64, gateAddr string) (*session.Session
 			gateClient: clusterpb.NewMemberClient(conns.Get()),
 			rpcHandler: n.handler.remoteProcess,
 			gateAddr:   gateAddr,
+			clientAddr: clientAddr,
 		}
 		s = session.New(ac)
 		ac.session = s
@@ -329,7 +330,7 @@ func (n *Node) HandleRequest(_ context.Context, req *clusterpb.RequestMessage) (
 	if !found {
 		return nil, fmt.Errorf("service not found in current node: %v", req.Route)
 	}
-	s, err := n.findOrCreateSession(req.SessionId, req.GateAddr)
+	s, err := n.findOrCreateSession(req.SessionId, req.GateAddr, req.ClientAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +349,7 @@ func (n *Node) HandleNotify(_ context.Context, req *clusterpb.NotifyMessage) (*c
 	if !found {
 		return nil, fmt.Errorf("service not found in current node: %v", req.Route)
 	}
-	s, err := n.findOrCreateSession(req.SessionId, req.GateAddr)
+	s, err := n.findOrCreateSession(req.SessionId, req.GateAddr, req.ClientAddr)
 	if err != nil {
 		return nil, err
 	}

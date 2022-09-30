@@ -33,6 +33,7 @@ message RequestMessage {
     uint64 id = 3;
     string route = 4;
     bytes data = 5;
+    string clientAddr = 6;
 }
 
 message NotifyMessage {
@@ -40,6 +41,7 @@ message NotifyMessage {
     int64 sessionId = 2;
     string route = 3;
     bytes data = 4;
+    string clientAddr = 5;
 }
 
 message ResponseMessage {
