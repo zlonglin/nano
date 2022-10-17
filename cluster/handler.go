@@ -223,6 +223,10 @@ func (h *LocalHandler) handle(conn net.Conn) {
 		if env.Debug {
 			log.Println(fmt.Sprintf("Session read goroutine exit, SessionID=%d, UID=%d", agent.session.ID(), agent.session.UID()))
 		}
+		req := &clusterpb.CloseSessionRequest{
+			SessionId: agent.session.ID(),
+		}
+		h.currentNode.CloseSession(context.Background(), req)
 	}()
 
 	// read loop
