@@ -397,36 +397,37 @@ func (n *Node) DelMember(_ context.Context, req *clusterpb.DelMemberRequest) (*c
 
 // SessionClosed implements the MemberServer interface
 func (n *Node) SessionClosed(_ context.Context, req *clusterpb.SessionClosedRequest) (*clusterpb.SessionClosedResponse, error) {
-	n.mu.Lock()
-	s, found := n.sessions[req.SessionId]
-	delete(n.sessions, req.SessionId)
-	n.mu.Unlock()
-	if found {
-		scheduler.PushTask(func() { session.Lifetime.Close(s) })
-	}
-	return &clusterpb.SessionClosedResponse{}, nil
-}
-
-// CloseSession implements the MemberServer interface
-func (n *Node) CloseSession(_ context.Context, req *clusterpb.CloseSessionRequest) (*clusterpb.CloseSessionResponse, error) {
 	if req.SessionId == -1 {
+		log.Println("Close all sessions")
 		n.mu.Lock()
 		tmplist := n.sessions
 		n.sessions = map[int64]*session.Session{}
 		n.mu.Unlock()
 		for _, s := range tmplist {
-			s.Close()
+			scheduler.PushTask(func() { session.Lifetime.Close(s) })
 		}
-		log.Println("Close all sessions")
 	} else {
 		n.mu.Lock()
 		s, found := n.sessions[req.SessionId]
 		delete(n.sessions, req.SessionId)
 		n.mu.Unlock()
 		if found {
-			s.Close()
+			scheduler.PushTask(func() { session.Lifetime.Close(s) })
 		}
 	}
+	return &clusterpb.SessionClosedResponse{}, nil
+}
+
+// CloseSession implements the MemberServer interface
+func (n *Node) CloseSession(_ context.Context, req *clusterpb.CloseSessionRequest) (*clusterpb.CloseSessionResponse, error) {
+	n.mu.Lock()
+	s, found := n.sessions[req.SessionId]
+	delete(n.sessions, req.SessionId)
+	n.mu.Unlock()
+	if found {
+		s.Close()
+	}
+
 	return &clusterpb.CloseSessionResponse{}, nil
 }
 
