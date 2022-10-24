@@ -189,6 +189,11 @@ func (n *Node) initNode() error {
 // Shutdowns all components registered by application, that
 // call by reverse order against register
 func (n *Node) Shutdown() {
+	if n.ClientAddr != "" {
+		// close all sessions
+		n.CloseAllSessions()
+	}
+
 	// reverse call `BeforeShutdown` hooks
 	components := n.Components.List()
 	length := len(components)
@@ -404,12 +409,49 @@ func (n *Node) SessionClosed(_ context.Context, req *clusterpb.SessionClosedRequ
 
 // CloseSession implements the MemberServer interface
 func (n *Node) CloseSession(_ context.Context, req *clusterpb.CloseSessionRequest) (*clusterpb.CloseSessionResponse, error) {
-	n.mu.Lock()
-	s, found := n.sessions[req.SessionId]
-	delete(n.sessions, req.SessionId)
-	n.mu.Unlock()
-	if found {
-		s.Close()
+	if req.SessionId == -1 {
+		n.mu.Lock()
+		tmplist := n.sessions
+		n.sessions = map[int64]*session.Session{}
+		n.mu.Unlock()
+		for _, s := range tmplist {
+			s.Close()
+		}
+		log.Println("Close all sessions")
+	} else {
+		n.mu.Lock()
+		s, found := n.sessions[req.SessionId]
+		delete(n.sessions, req.SessionId)
+		n.mu.Unlock()
+		if found {
+			s.Close()
+		}
 	}
 	return &clusterpb.CloseSessionResponse{}, nil
+}
+
+// close all sessions from remote service
+func (n *Node) CloseAllSessions() {
+	request := &clusterpb.SessionClosedRequest{
+		SessionId: -1,
+	}
+
+	members := n.cluster.remoteAddrs()
+	for _, remote := range members {
+		log.Println("Notify remote server", remote)
+		pool, err := n.rpcClient.getConnPool(remote)
+		if err != nil {
+			log.Println("Cannot retrieve connection pool for address", remote, err)
+			continue
+		}
+		client := clusterpb.NewMemberClient(pool.Get())
+		_, err = client.SessionClosed(context.Background(), request)
+		if err != nil {
+			log.Println("Cannot closed session in remote address", remote, err)
+			continue
+		}
+		if env.Debug {
+			log.Println("Notify remote server success", remote)
+		}
+	}
 }
