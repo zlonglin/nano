@@ -431,7 +431,7 @@ func (n *Node) CloseSession(_ context.Context, req *clusterpb.CloseSessionReques
 	return &clusterpb.CloseSessionResponse{}, nil
 }
 
-// close all sessions from remote service
+// notify remote service close all sessions
 func (n *Node) CloseAllSessions() {
 	request := &clusterpb.SessionClosedRequest{
 		SessionId: -1,
